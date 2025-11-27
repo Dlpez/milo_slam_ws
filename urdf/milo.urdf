@@ -1,0 +1,252 @@
+<?xml version="1.0"?>
+<robot name="milo">
+
+  <!-- ===================== base_footprint ===================== -->
+  <!-- Origen 2D del robot en el piso -->
+  <link name="base_footprint">
+    <!-- Sin inercia, solo frame geométrico -->
+  </link>
+
+  <joint name="base_link_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <!-- base_link está 0.215 m sobre el piso -->
+    <child  link="base_link"/>
+    <origin xyz="0 0 0.215" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ===================== base_link (caja 50x50x21) ===================== -->
+  <!-- Centro geométrico del robot -->
+  <link name="base_link">
+    <inertial>
+      <!-- masa aproximada del cuerpo principal -->
+      <mass value="15.0"/>
+      <!-- caja 0.50 x 0.50 x 0.21 m, Ixx=Iyy≈0.368, Izz≈0.625 -->
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.3676" ixy="0.0" ixz="0.0"
+               iyy="0.3676" iyz="0.0"
+               izz="0.6250"/>
+    </inertial>
+
+    <visual>
+      <!-- Caja centrada en el origen del link -->
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.50 0.50 0.21"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.6 0.6 0.6 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.50 0.50 0.21"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- =====================================================================
+       Ruedas motrices (hoverboard)
+       - Separación entre centros: 32 cm -> ±0.16 m en Y
+       - Offset hacia atrás desde el centro: 14 cm -> x = -0.14 m
+       - Diámetro: 16.5 cm -> radio 0.0825 m
+       - Altura centro: 8.25 cm -> z = 0.0825 sobre el piso
+       - Como base_link está a 0.215 m, z_rel = 0.0825 - 0.215 = -0.1325
+     ===================================================================== -->
+
+  <link name="left_wheel_link">
+    <inertial>
+      <mass value="1.0"/>
+      <!-- cilindro, eje en Y -->
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <!-- Ix=Iz≈0.00191, Iy≈0.00340 -->
+      <inertia ixx="0.00191" ixy="0.0" ixz="0.0"
+               iyy="0.00340" iyz="0.0"
+               izz="0.00191"/>
+    </inertial>
+
+    <visual>
+      <!-- Giramos -pi/2 en X para que el eje del cilindro quede en Y -->
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.0825" length="0.05"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.0825" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="right_wheel_link">
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.00191" ixy="0.0" ixz="0.0"
+               iyy="0.00340" iyz="0.0"
+               izz="0.00191"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.0825" length="0.05"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.0825" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joints de las ruedas: tipo continuous (differential drive realista) -->
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child  link="left_wheel_link"/>
+    <!-- x=-0.14 (atrás), y=+0.16 (izquierda), z=-0.1325 relativo al centro de base_link -->
+    <origin xyz="-0.14 0.16 -0.1325" rpy="0 0 0"/>
+    <!-- eje de giro en Y (rueda avanza en X) -->
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child  link="right_wheel_link"/>
+    <!-- x=-0.14 (atrás), y=-0.16 (derecha), z=-0.1325 -->
+    <origin xyz="-0.14 -0.16 -0.1325" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- =====================================================================
+       Ruedas locas delanteras (casters)
+       - Diámetro: 7 cm -> radio 0.035 m
+       - Altura centro: 3.5 cm -> z = 0.035 sobre el piso
+       - Con base_link a 0.215 m -> z_rel = 0.035 - 0.215 = -0.18
+       - Separación entre ejes: 44 cm -> ±0.22 m en Y
+       - Posición aproximada en X: +0.22 m
+     ===================================================================== -->
+
+  <link name="front_left_caster">
+    <inertial>
+      <mass value="0.3"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <!-- Ix=Iz≈0.000114, Iy≈0.000184 -->
+      <inertia ixx="0.000114" ixy="0.0" ixz="0.0"
+               iyy="0.000184" iyz="0.0"
+               izz="0.000114"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.03"/>
+      </geometry>
+      <material name="orange">
+        <color rgba="1.0 0.5 0.0 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="front_right_caster">
+    <inertial>
+      <mass value="0.3"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.000114" ixy="0.0" ixz="0.0"
+               iyy="0.000184" iyz="0.0"
+               izz="0.000114"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.03"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Casters como FIXED: no hace falta simular su giro -->
+  <joint name="front_left_caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="front_left_caster"/>
+    <!-- x=+0.22 (adelante), y=+0.22 (izquierda), z=-0.18 relativo a base_link -->
+    <origin xyz="0.22 0.22 -0.18" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="front_right_caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="front_right_caster"/>
+    <!-- x=+0.22 (adelante), y=-0.22 (derecha), z=-0.18 -->
+    <origin xyz="0.22 -0.22 -0.18" rpy="0 0 0"/>
+  </joint>
+
+  <!-- =====================================================================
+       LIDAR (SLLidar / RPLidar)
+       - Offset desde centro: 28 cm adelante -> x = +0.28
+       - Altura al centro: 34.5 cm -> z = 0.345 sobre el piso
+       - Con base_link a 0.215 m -> z_rel = 0.345 - 0.215 = 0.13
+       - Asumimos centrado en Y
+     ===================================================================== -->
+
+  <link name="laser">
+    <inertial>
+      <mass value="0.5"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <!-- cilindro eje en Z: Ix=Iy≈0.000717, Iz≈0.0009 -->
+      <inertia ixx="0.000717" ixy="0.0" ixz="0.0"
+               iyy="0.000717" iyz="0.0"
+               izz="0.000900"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <!-- Cilindro pequeño como mock del lidar -->
+        <cylinder radius="0.06" length="0.08"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.08"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="laser"/>
+    <!-- x=+0.28 (adelante), y=0, z=0.13 relativo a base_link -->
+    <origin xyz="0.28 0 0.13" rpy="0 0 3.14159"/>
+  </joint>
+
+</robot>
